@@ -1,5 +1,6 @@
 from discord.ext import commands
 from discord.utils import get
+from utils import gsheets
 
 import os
 import csv
@@ -8,7 +9,7 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.moonhub_id = 938534503884947497
-        self.admin_id = 789420559477899264
+        self.admin_id = 573142243272294401
     
     @commands.Cog.listener()
     async def on_ready(self):
@@ -22,21 +23,8 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         print(f"{member.name} joined the server")
-        user = member.name
-        userid = member.id
-        with open("./csv/users.csv", mode="r") as csv_file:
-            csv_reader = csv.reader(csv_file)
-            header = next(csv_reader)
-
-            for u, uid, *c in csv_reader:
-                if (int(uid) == userid):
-                    print("User Info: Present")
-                    return
-
-        with open("./csv/users.csv", mode="a") as csv_file:
-            csv_writer = csv.writer(csv_file)
-            coins, cash, email = 5, 0, ""
-            csv_writer.writerow([user, userid, coins, cash, email])   
+        gsheets.gs.write_new_member(f"{member.name}#{member.discriminator}")
+        
     
 def setup(bot):
     bot.add_cog(Events(bot))

@@ -1,5 +1,6 @@
 from discord.ext import commands
 from discord.utils import get
+from utils import gsheets
 
 import os
 import csv
@@ -10,7 +11,7 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.moonhub_id = 938534503884947497
-        self.admin_id = 789420559477899264
+        self.admin_id = 573142243272294401
 
     def check_if_dm(self, ctx):
         if not ctx.guild:
@@ -22,24 +23,17 @@ class Commands(commands.Cog):
     async def wallet(self, ctx):
         if user := self.check_if_dm(ctx):
             dm = await user.create_dm()
-            userid = user.id
-
-            with open("./csv/users.csv", mode="r") as csv_file:
-                csv_reader = csv.reader(csv_file)
-                header = next(csv_reader)
-
-                for u, uid, coin, cash, email in csv_reader:
-                    if (int(uid) == userid):
-                        await dm.send(f"**{user.name}** has **{coin} Crescent Coins** and **{cash} $** in their wallet.")
-                        break
-                else:
-                    await dm.send("Please join the **Moonland** discord server to get your wallet.")
+            
+            user, coin, cash, email = gsheets.gs.fetch_wallet(f"{user.name}#{user.discriminator}")
+            if user:
+                await dm.send(f"**{user}** has **{coin} Crescent Coins** and **{cash} $** in their wallet.")
+            else:
+                await dm.send("Please join the **Moonland** discord server to get your wallet.")
     
     @commands.command()
     async def link(self, ctx, email=None):
         if user := self.check_if_dm(ctx):
             dm = await user.create_dm()
-            userid = user.id
 
             if not email:
                 await dm.send("Please send your email as **/link example@moonland.com**")
@@ -47,19 +41,9 @@ class Commands(commands.Cog):
 
             regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
             if re.fullmatch(regex, email):
-                csvlines = []
-                with open("./csv/users.csv", mode="r") as csv_file:
-                    csv_reader = csv.reader(csv_file)
-                    csvlines.append(next(csv_reader))
-                    for row in csv_reader:
-                        uid = row[1]
-                        if (int(uid) == userid):
-                            row[-1] = email
-                        csvlines.append(row)
-                
-                with open("./csv/users.csv", mode="w") as csv_file:
-                    csv_writer = csv.writer(csv_file)
-                    csv_writer.writerows(csvlines)    
+                if not gsheets.gs.link_email(f"{user.name}#{user.discriminator}", email):
+                    await dm.send("Please join the **Moonland** discord server to get your wallet.")
+                    return
 
                 # guild = get(self.bot.guilds, id=self.moonhub_id)
                 # member_role = get(guild.roles, name="Member")

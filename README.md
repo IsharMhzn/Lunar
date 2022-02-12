@@ -17,7 +17,17 @@ A discord bot for the Moonland server.
     ```
     TOKEN=BOT_TOKEN_ID
     ```
-4. Run the `bot.py` file
+4. Set up google services
+    1. Create a new project named anything (Eg: Moonland Lunar Bot) https://console.developers.google.com/apis/
+
+    2. Search and enable google drive api service and google sheets api service
+
+    3. Create a new service account and share me your service email https://console.developers.google.com/apis/credentials
+
+    4. Add a new key for your service account and download the services.json file and move it to the bot's directory or `.configs/gspread/` directory.
+
+    5. Create a google sheets, and the service email as an editor.
+5. Run the `bot.py` file
     ```
     python bot.py
     ```
